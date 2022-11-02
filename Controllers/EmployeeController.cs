@@ -1,3 +1,4 @@
+using System.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using LeAnhTuanBTH2.Data;
 using LeAnhTuanBTH2.Models;
+using LeAnhTuanBTH2.Models.Process;
 
 namespace LeAnhTuanBTH2.Controllers
 {
@@ -28,7 +30,7 @@ namespace LeAnhTuanBTH2.Controllers
         }
 
         // GET: Employee/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(String id)
         {
             if (id == null || _context.Employee == null)
             {
@@ -36,7 +38,7 @@ namespace LeAnhTuanBTH2.Controllers
             }
 
             var employee = await _context.Employee
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.EmpID == id);
             if (employee == null)
             {
                 return NotFound();
@@ -56,7 +58,7 @@ namespace LeAnhTuanBTH2.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,FullName,Age,Sđt")] Employee employee)
+        public async Task<IActionResult> Create([Bind("EmpID,EmpName,Address")] Employee employee)
         {
             if (ModelState.IsValid)
             {
@@ -68,7 +70,7 @@ namespace LeAnhTuanBTH2.Controllers
         }
 
         // GET: Employee/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(String id) 
         {
             if (id == null || _context.Employee == null)
             {
@@ -88,9 +90,9 @@ namespace LeAnhTuanBTH2.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,FullName,Age,Sđt")] Employee employee)
+        public async Task<IActionResult> Edit(string EmpID, [Bind("EmpID,EmpName,Address")] Employee employee)
         {
-            if (id != employee.Id)
+            if (EmpID != employee.EmpID)
             {
                 return NotFound();
             }
@@ -104,7 +106,7 @@ namespace LeAnhTuanBTH2.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!EmployeeExists(employee.Id))
+                    if (!EmployeeExists(employee.EmpID))
                     {
                         return NotFound();
                     }
@@ -119,7 +121,7 @@ namespace LeAnhTuanBTH2.Controllers
         }
 
         // GET: Employee/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(String id)
         {
             if (id == null || _context.Employee == null)
             {
@@ -127,7 +129,7 @@ namespace LeAnhTuanBTH2.Controllers
             }
 
             var employee = await _context.Employee
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.EmpID == id);
             if (employee == null)
             {
                 return NotFound();
@@ -155,9 +157,41 @@ namespace LeAnhTuanBTH2.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private bool EmployeeExists(int id)
+        private bool EmployeeExists(String id)
         {
-          return (_context.Employee?.Any(e => e.Id == id)).GetValueOrDefault();
+          return (_context.Employee?.Any(e => e.EmpID == id)).GetValueOrDefault();
+        }
+
+        public async Task<IActionResult>Upload()
+        {
+            return View();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+
+        public async Task<IActionResult> Upload(IFormFile file)
+        {
+            if (file!=null)
+            {
+                string fileExtension = Path.GetExtension(file.FileName);
+                if (fileExtension != ".els" && fileExtension != ".xlsx")
+                {
+                    ModelState.AddModelError("", "Please choose excel file to upload!");
+                }
+                else
+                {
+                    var fileName = DateTime.Now.ToShortTimeString() + fileExtension;
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory() + "/Uploads/Excels", fileName);
+                    var fileLocation = new FileInfo(filePath).ToString();
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        //save file to server
+                        await file.CopyToAsync(stream);
+                    }
+                }
+            }
+            return View();
         }
     }
 }
+        

@@ -1,10 +1,13 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace LeAnhTuanBTH2.Models
+
 {
     public class Employee
     {
-        public int Id { get; set; }
-        public string? FullName { get; set; }
-        public int Age { get; set; }
-        public String? Sđt { get; set; }
+        [Key]
+        public string? EmpID { get; set; }
+        public string? EmpName { get; set; }
+        public String? Address { get; set; }
     }
 }
